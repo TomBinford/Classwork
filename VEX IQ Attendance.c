@@ -50,20 +50,36 @@ bool isAtNextLine()
 	{
 		onBlack = true;
 		onWhite = false;
+		return false;
 	}
-	if(getColorValue(color) > 70 && onBlack)
+	if(getColorValue(color) > 70)
 	{
+		if(onBlack)
+		{
+			return true;
+		}
+		else
+		{
+			return false;
+		}
 		onBlack = false;
 		onWhite = true;
 	}
+	return true;
 }
 
 void init()
 {
 	robot.chassis.leftSide = leftMotor;
 	robot.chassis.rightSide = rightMotor;
-	robot.state = Scanning;
+	robot.state = DrivingForward;
 	setColorMode(color, colorTypeGrayscale_Reflected);
+}
+
+void setChassisPowers(int leftPower, int rightPower)
+{
+	motor[robot.chassis.leftSide] = leftPower;
+	motor[robot.chassis.rightSide] = rightPower;
 }
 
 task main()
@@ -106,15 +122,25 @@ task main()
 			{
 				if(isAtNextLine())
 				{
+					setChassisPowers(0, 0);
 					atStart = false;
+				}
+				else
+				{
+					setChassisPowers(75, 75);
 				}
 			}
 			else
 			{
 				if(isAtNextLine())
 				{
+					setChassisPowers(0, 0);
 					robot.state = Scanning;
 					row++;
+				}
+				else
+				{
+					setChassisPowers(75, 75);
 				}
 			}
 			break;
