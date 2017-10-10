@@ -42,6 +42,14 @@ void gyroCorrect()
 	time1[T1] = 0;
 	float currentRate = getGyroRateFloat(gyro) - driftRate;
 	gyroValue += currentRate/(1000 / (float)currentTime);
+	if(gyroValue > 360)
+	{
+		gyroValue -= 360.0;
+	}
+	else if(gyroValue < -360)
+	{
+		gyroValue += 360;
+	}
 }
 
 void gyroCalibration()
@@ -56,17 +64,9 @@ void gyroCalibration()
 		{
 			setTouchLEDColor(touchLED, colorRedViolet);
 		}
-		else if(time1[T1] > 1000 && time1[T1] < 2000)
-		{
-			setTouchLEDColor(touchLED, colorRed);
-		}
 		else if(time1[T1] > 2000 && time1[T1] < 3000)
 		{
 			setTouchLEDColor(touchLED, colorOrange);
-		}
-		else if(time1[T1] > 3000 && time1[T1] < 4000)
-		{
-			setTouchLEDColor(touchLED, colorYellow);
 		}
 		else if(time1[T1] > 4000 && time1[T1] < 5000)
 		{
@@ -78,30 +78,24 @@ void gyroCalibration()
 	}
 	setTouchLEDColor(touchLED, colorLimeGreen);
 	driftRate = sum / count;
+	resetGyro(gyro);
 	time1[T1] = 0;
 }
 
-bool hasTurnedProportionally(float goalDegrees, float changeDegrees)
+bool hasTurnedProportionally(float goalDegrees, float changeDegrees, int maxPower = 95, int minPower = 15)
 {
+	int power = (abs(gyroValue - goalDegrees) - 10) / abs(changeDegrees) * maxPower + minPower;
 	if(goalDegrees - 1 > gyroValue)
 	{
-		setChassisPowers((-(int)(((changeDegrees + gyroValue) / changeDegrees) * 100) - 5), ((int)(((changeDegrees + gyroValue) / changeDegrees) * 100) + 5));
-		if(((changeDegrees + gyroValue) / changeDegrees) * 100 > 10)
-		{
-			return false;
-		}
-		return true;
+		setChassisPowers(-power, power);
+		return false;
 	}
 	else if(goalDegrees + 1 < gyroValue)
 	{
-		setChassisPowers(((int)(((changeDegrees - gyroValue) / changeDegrees) * 100) + 5), (-(int)(((changeDegrees - gyroValue) / changeDegrees) * 100) - 5));
-		if(changeDegrees - gyroValue / changeDegrees * 100 < -10)
-		{
-			return false;
-		}
-		return true;
+		setChassisPowers(power, -power);
+		return false;
 	}
-	return true;
+		return true;
 }
 
 void init()
@@ -118,15 +112,37 @@ task main()
 	{
 	}
 	init();
+	while(nMotorEncoder[leftMotor] < 500)
+	{
+		setChassisPowers(50, 50);
+	}
+	setChassisPowers(0, 0);
 	while(true)
 	{
 		gyroCorrect();
-		if(hasTurnedProportionally(-90, -90))
+		if(hasTurnedProportionally(90, 90, 100))
+		{
+			setChassisPowers(0, 0);
+			//setTouchLEDColor(touchLED, colorBlue);
+			delay(1000);
+			break;
+		}
+		displayTextLine(2, "GyroValue: %f", gyroValue);
+	}
+	while(true)
+	{
+		gyroCorrect();
+		if(hasTurnedProportionally(0, -90))
 		{
 			setChassisPowers(0, 0);
 			setTouchLEDColor(touchLED, colorBlue);
-			displayTextLine(2, "GyroValue: %f", gyroValue);
+			break;
 		}
+		displayTextLine(2, "GyroValue: %f", gyroValue);
+	}
+	while(true)
+	{
+		gyroCorrect();
 		displayTextLine(2, "GyroValue: %f", gyroValue);
 	}
 }
