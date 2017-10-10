@@ -8,6 +8,13 @@ float driftRate;
 
 float gyroValue = 0;
 
+enum States
+{
+	FirstTurn,
+	SecondTurn,
+	Idle
+};
+
 struct Side
 {
 	tMotor sideMotor;
@@ -21,6 +28,7 @@ struct Chassis
 
 struct Robot
 {
+	States state;
 	Chassis chassis;
 };
 
@@ -101,7 +109,8 @@ bool hasTurnedProportionally(float goalDegrees, float changeDegrees, int maxPowe
 void init()
 {
 	gyroCalibration();
-	robot.chassis.leftSide =  leftMotor;
+	robot.state = FirstTurn;
+	robot.chassis.leftSide = leftMotor;
 	robot.chassis.rightSide = rightMotor;
 	time1[T1] = 0;
 }
@@ -120,29 +129,27 @@ task main()
 	while(true)
 	{
 		gyroCorrect();
-		if(hasTurnedProportionally(-90, -90, 100))
+		displayTextLine(2, "GyroValue: %f", gyroValue);
+		switch(robot.state)
 		{
-			setChassisPowers(0, 0);
-			//setTouchLEDColor(touchLED, colorBlue);
-			delay(1000);
-			break;
+			case FirstTurn:
+				if(hasTurnedProportionally(-90, -90, 100))
+				{
+					setChassisPowers(0, 0);
+					robot.state = SecondTurn;
+				}
+				break;
+			case SecondTurn:
+				if(hasTurnedProportionally(0, 90))
+				{
+					setChassisPowers(0, 0);
+					setTouchLEDColor(touchLED, colorBlue);
+					robot.state = Idle;
+				}
+				break;
+			case Idle:
+				setChassisPowers(0, 0);
+				break;
 		}
-		displayTextLine(2, "GyroValue: %f", gyroValue);
-	}
-	while(true)
-	{
-		gyroCorrect();
-		if(hasTurnedProportionally(-180, -90))
-		{
-			setChassisPowers(0, 0);
-			setTouchLEDColor(touchLED, colorBlue);
-			break;
-		}
-		displayTextLine(2, "GyroValue: %f", gyroValue);
-	}
-	while(true)
-	{
-		gyroCorrect();
-		displayTextLine(2, "GyroValue: %f", gyroValue);
 	}
 }
