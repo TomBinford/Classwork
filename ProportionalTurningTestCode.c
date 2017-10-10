@@ -120,7 +120,7 @@ task main()
 	while(true)
 	{
 		gyroCorrect();
-		if(hasTurnedProportionally(90, 90, 100))
+		if(hasTurnedProportionally(-90, -90, 100))
 		{
 			setChassisPowers(0, 0);
 			//setTouchLEDColor(touchLED, colorBlue);
@@ -132,7 +132,7 @@ task main()
 	while(true)
 	{
 		gyroCorrect();
-		if(hasTurnedProportionally(0, -90))
+		if(hasTurnedProportionally(-180, -90))
 		{
 			setChassisPowers(0, 0);
 			setTouchLEDColor(touchLED, colorBlue);
