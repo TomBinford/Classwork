@@ -31,7 +31,8 @@ enum States
 	DirectTurn,
 	DirectDrive,
 	DirectReTurn,
-	AlignmentState
+	AlignmentState,
+	Idle
 };
 
 struct Side
@@ -130,7 +131,7 @@ void gyroCalibration()
 int inchesToDegs(int inches)
 {
 	//2 in ~ 100 degs
-	return inches * 50;
+	return inches * 34;
 }
 
 void setChassisPowers(int leftPower, int rightPower)
@@ -205,7 +206,7 @@ task main()
 
 	RingColors ringColor = None;
 
-	int currentRingSpot = -1;
+	int currentRingSpot = 0;
 
 	bool enteringState = true;
 
@@ -221,12 +222,12 @@ task main()
 		gyroCorrect();
 		switch(robot.state)
 		{
+		case Idle:
+			setChassisPowers(0, 0);
+			displayTextLine(3, "State: Idle");
+			break;
 		case AlignmentState:
 			displayTextLine(3, "State: AlignmentState");
-			//stage 0: go forward 100 degrees
-			//stage 1: turn right 90 degrees
-			//stage 2: go forward ? degrees
-			//stage 3: turn left 90 degrees
 			if(enteringState)
 			{
 				gyroValue = 0;
@@ -333,16 +334,24 @@ task main()
 			enteringState = true;
 			break;
 		case DepositingRing:
-			if(abs(nMotorEncoder[intakeMotor]) < 250)
+			displayTextLine(3, "State: DepositingRing");
+			if(nMotorEncoder[intakeMotor] < 0)
 			{
 				motor[intakeMotor] = 50;
 			}
 			else
 			{
 				motor[intakeMotor] = 0;
-				robot.state = TurningAround;
+				robot.state = Idle;
 			}
 			break;
+			//
+			//
+			//
+			//DirectTurn
+			//
+			//
+			//
 		case DirectTurn:
 			displayTextLine(3, "State: DirectTurn");
 			if(enteringState)
@@ -354,10 +363,9 @@ task main()
 			{
 				if(currentRingSpot == 1)
 				{
-					directTurnDegrees = -asin(18 / 19.0);
-					if(hasTurnedProportionally(-asin(18 / 19.0), -asin(18 / 19.0)))
+					directTurnDegrees = radiansToDegrees(asin(18 / 19.0)) - 7;
+					if(hasTurnedProportionally(radiansToDegrees(asin(18 / 19.0)) - 7, radiansToDegrees(asin(18 / 19.0)) - 7))
 					{
-						exitProgram = true;
 						robot.state = DirectDrive;
 						setChassisPowers(0, 0);
 						enteringState = true;
@@ -365,30 +373,23 @@ task main()
 				}
 				else if(currentRingSpot == 2)
 				{
-					directTurnDegrees = asin(18 / 19.0) + 180;
-					if(hasTurnedProportionally(180, 180))
+					directTurnDegrees = 173 - radiansToDegrees(asin(18 / 19.0));
+					if(hasTurnedProportionally(173 - radiansToDegrees(asin(18 / 19.0)), 173 - radiansToDegrees(asin(18 / 19.0))))
 					{
-						if(hasTurnedProportionally(asin(18 / 19.0) + 180, asin(18 / 19.0)))
-						{
-							exitProgram = true;
-							robot.state = DirectDrive;
-							setChassisPowers(0, 0);
-							enteringState = true;
-						}
+						robot.state = DirectDrive;
+						setChassisPowers(0, 0);
+						enteringState = true;
 					}
 				}
 				else
 				{
-					directTurnDegrees = asin(18 / 25.0) + 180;
-					if(hasTurnedProportionally(180, 180))
+					directTurnDegrees = 180 - radiansToDegrees(asin(18 / 25.0));
+					displayTextLine(1, "%f", 180 - radiansToDegrees(asin(18/25.0)));
+					if(hasTurnedProportionally(180 - radiansToDegrees(asin(18 / 25.0)), 180 - radiansToDegrees(asin(18 / 25.0))))
 					{
-						if(hasTurnedProportionally(asin(18 / 25.0) + 180, asin(18 / 25.0)))
-						{
-							exitProgram = true;
-							robot.state = DirectDrive;
-							setChassisPowers(0, 0);
-							enteringState = true;
-						}
+						robot.state = DirectDrive;
+						setChassisPowers(0, 0);
+						enteringState = true;
 					}
 				}
 			}
@@ -396,10 +397,9 @@ task main()
 			{
 				if(currentRingSpot == 1)
 				{
-					directTurnDegrees = -asin(18 / 25.0);
-					if(hasTurnedProportionally(-asin(18 / 25.0), -asin(18 / 25.0)))
+					directTurnDegrees = radiansToDegrees(asin(18 / 28.0));
+					if(hasTurnedProportionally(radiansToDegrees(asin(18 / 28.0)), radiansToDegrees(asin(18 / 28.0))))
 					{
-						exitProgram = true;
 						robot.state = DirectDrive;
 						setChassisPowers(0, 0);
 						enteringState = true;
@@ -407,10 +407,9 @@ task main()
 				}
 				else if(currentRingSpot == 2)
 				{
-					directTurnDegrees = -asin(18 / 19.0);
-					if(hasTurnedProportionally(-asin(18 / 19.0), -asin(18 / 19.0)))
+					directTurnDegrees = radiansToDegrees(asin(18 / 19.0));
+					if(hasTurnedProportionally(radiansToDegrees(asin(18 / 19.0)), radiansToDegrees(asin(18 / 19.0))))
 					{
-						exitProgram = true;
 						robot.state = DirectDrive;
 						setChassisPowers(0, 0);
 						enteringState = true;
@@ -418,36 +417,36 @@ task main()
 				}
 				else
 				{
-					directTurnDegrees = asin(18 / 19.0) + 180;
-					if(hasTurnedProportionally(180, 180))
-					{
-						if(hasTurnedProportionally(asin(18 / 19.0) + 180, asin(18 / 19.0)))
+					directTurnDegrees = 180 - radiansToDegrees(asin(18 / 19.0));
+						if(hasTurnedProportionally(180 - radiansToDegrees(asin(18 / 19.0)), 180 - radiansToDegrees(asin(18 / 19.0))))
 						{
-							exitProgram = true;
 							robot.state = DirectDrive;
 							setChassisPowers(0, 0);
 							enteringState = true;
 						}
-					}
 				}
 			}
 			break;
+			//
+			//
+			//
+			//Direct Drive
+			//
+			//
+			//
 		case DirectDrive:
 			displayTextLine(3, "State: DirectDrive");
 			if(enteringState)
 			{
-				setTouchLEDColor(touchLED, colorBlue);
 				nMotorEncoder[robot.chassis.leftSide] = 0;
 				nMotorEncoder[robot.chassis.rightSide] = 0;
 				enteringState = false;
-				exitProgram = true;
-				break;
 			}
 			if(ringColor == RedOrGreen)
 			{
 				if(currentRingSpot == 1)
 				{
-					if(encoder(robot.chassis.leftSide) < inchesToDegs(19) && encoder(robot.chassis.rightSide) < inchesToDegs(19))
+					if(absEncoder(robot.chassis.leftSide) < inchesToDegs(19) && absEncoder(robot.chassis.rightSide) < inchesToDegs(19))
 					{
 						setChassisPowers(50, 50);
 					}
@@ -460,7 +459,7 @@ task main()
 				}
 				else if(currentRingSpot == 2)
 				{
-					if(encoder(robot.chassis.leftSide) < inchesToDegs(19) && encoder(robot.chassis.rightSide) < inchesToDegs(19))
+					if(absEncoder(robot.chassis.leftSide) < inchesToDegs(18) && absEncoder(robot.chassis.rightSide) < inchesToDegs(18))
 					{
 						setChassisPowers(50, 50);
 					}
@@ -473,7 +472,7 @@ task main()
 				}
 				else
 				{
-					if(encoder(robot.chassis.leftSide) < inchesToDegs(25) && encoder(robot.chassis.rightSide) < inchesToDegs(25))
+					if(absEncoder(robot.chassis.leftSide) < inchesToDegs(25) && absEncoder(robot.chassis.rightSide) < inchesToDegs(25))
 					{
 						setChassisPowers(50, 50);
 					}
@@ -489,7 +488,7 @@ task main()
 			{
 				if(currentRingSpot == 1)
 				{
-					if(encoder(robot.chassis.leftSide) < inchesToDegs(25) && encoder(robot.chassis.rightSide) < inchesToDegs(25))
+					if(absEncoder(robot.chassis.leftSide) < inchesToDegs(25) && absEncoder(robot.chassis.rightSide) < inchesToDegs(25))
 					{
 						setChassisPowers(50, 50);
 					}
@@ -502,7 +501,7 @@ task main()
 				}
 				else if(currentRingSpot == 2)
 				{
-					if(encoder(robot.chassis.leftSide) < inchesToDegs(19) && encoder(robot.chassis.rightSide) < inchesToDegs(19))
+					if(absEncoder(robot.chassis.leftSide) < inchesToDegs(19) && absEncoder(robot.chassis.rightSide) < inchesToDegs(19))
 					{
 						setChassisPowers(50, 50);
 					}
@@ -515,7 +514,7 @@ task main()
 				}
 				else
 				{
-					if(encoder(robot.chassis.leftSide) < inchesToDegs(19) && encoder(robot.chassis.rightSide) < inchesToDegs(19))
+					if(absEncoder(robot.chassis.leftSide) < inchesToDegs(19) && encoder(robot.chassis.rightSide) < inchesToDegs(19))
 					{
 						setChassisPowers(50, 50);
 					}
@@ -528,6 +527,13 @@ task main()
 				}
 			}
 			break;
+			//
+			//
+			//
+			//Direct Re-Turn
+			//
+			//
+			//
 		case DirectReTurn:
 			displayTextLine(3, "State: DirectReTurn");
 			if(enteringState)
