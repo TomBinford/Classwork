@@ -1,5 +1,3 @@
-#pragma config(Sensor, port4,  gyro,           sensorVexIQ_Gyro)
-
 float driftRate;
 
 float gyroValue = 0;

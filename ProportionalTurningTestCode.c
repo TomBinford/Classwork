@@ -10,6 +10,7 @@ float gyroValue = 0;
 
 enum States
 {
+	Alignment,
 	FirstTurn,
 	SecondTurn,
 	Idle
@@ -129,18 +130,34 @@ task main()
 	while(true)
 	{
 		gyroCorrect();
+		displayTextLine(4, "%f", radiansToDegrees(asin(18/25.0)));
 		displayTextLine(2, "GyroValue: %f", gyroValue);
 		switch(robot.state)
 		{
-			case FirstTurn:
-				if(hasTurnedProportionally(-90, -90, 100))
+			case Alignment:
+				if(nMotorEncoder[robot.chassis.leftSide] < 200)
+				{
+					setChassisPowers(50, 50);
+				}
+				else
 				{
 					setChassisPowers(0, 0);
+					robot.state = FirstTurn;
+				}
+			case FirstTurn:
+				if(gyroValue > radiansToDegrees(asin(18/25.0)))
+				{
+					setChassisPowers(30, -30);
 					robot.state = SecondTurn;
+				}
+				else
+				{
+					robot.state = SecondTurn;
+					setChassisPowers(0, 0);
 				}
 				break;
 			case SecondTurn:
-				if(hasTurnedProportionally(0, 90))
+				if(hasTurnedProportionally(radiansToDegrees(asin(18/25.0)), radiansToDegrees(asin(18/25.0))))
 				{
 					setChassisPowers(0, 0);
 					setTouchLEDColor(touchLED, colorBlue);
