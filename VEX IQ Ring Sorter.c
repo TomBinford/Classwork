@@ -89,7 +89,7 @@ void gyroCorrect()
 	time1[T1] = 0;
 	float currentRate = getGyroRateFloat(gyro) - driftRate;
 	gyroValue += currentRate/(1000 / (float)currentTime);
-	if(gyroValue < -360)
+	if(gyroValue < 0)
 	{
 		gyroValue += 360;
 	}
@@ -123,7 +123,6 @@ void gyroCalibration()
 		count++;
 		delay(5);
 	}
-	setTouchLEDColor(touchLED, colorLimeGreen);
 	driftRate = sum / count;
 	time1[T1] = 0;
 }
@@ -148,15 +147,15 @@ int getRingColor()
 	}
 	else if(getColorHue(color) < 110 && getColorHue(color) > 100)
 	{
-		return 2;
+		return 1;
 	}
 	else if(getColorHue(color) < 170 && getColorHue(color) > 160)
 	{
-		return 3;
+		return 2;
 	}
 	else
 	{
-		return 0;
+		return 3;
 	}
 }
 
@@ -198,9 +197,18 @@ int encoder(Side m)
 {
 	return nMotorEncoder[m];
 }
+//
+//
+//
+//task main
+//
+//
+//
 task main()
 {
 	bool exitProgram = false;
+
+	bool hasTurnedAround = false;
 
 	int directTurnDegrees;
 
@@ -211,6 +219,9 @@ task main()
 	bool enteringState = true;
 
 	int alignmentStage = 0;
+
+	float tempGyro;
+
 	while(getTouchLEDValue(touchLED) != 1)
 	{
 	}
@@ -244,7 +255,7 @@ task main()
 				nMotorEncoder[robot.chassis.leftSide] = 0;
 				nMotorEncoder[robot.chassis.rightSide] = 0;
 			}
-			else if(!hasTurnedProportionally(-90, -90, 100) && alignmentStage == 1)
+			else if(!hasTurnedProportionally(270, 270, 100) && alignmentStage == 1)
 			{
 			}
 			else if(alignmentStage == 1)
@@ -453,7 +464,14 @@ task main()
 					else
 					{
 						setChassisPowers(0, 0);
-						robot.state = DepositingRing;
+						if(!hasTurnedAround)
+						{
+							robot.state = DepositingRing;
+						}
+						else
+						{
+							robot.state = DirectReTurn;
+						}
 						enteringState = true;
 					}
 				}
@@ -466,7 +484,14 @@ task main()
 					else
 					{
 						setChassisPowers(0, 0);
-						robot.state = DepositingRing;
+						if(!hasTurnedAround)
+						{
+							robot.state = DepositingRing;
+						}
+						else
+						{
+							robot.state = DirectReTurn;
+						}
 						enteringState = true;
 					}
 				}
@@ -479,7 +504,14 @@ task main()
 					else
 					{
 						setChassisPowers(0, 0);
-						robot.state = DepositingRing;
+						if(!hasTurnedAround)
+						{
+							robot.state = DepositingRing;
+						}
+						else
+						{
+							robot.state = DirectReTurn;
+						}
 						enteringState = true;
 					}
 				}
@@ -495,7 +527,14 @@ task main()
 					else
 					{
 						setChassisPowers(0, 0);
-						robot.state = DepositingRing;
+						if(!hasTurnedAround)
+						{
+							robot.state = DepositingRing;
+						}
+						else
+						{
+							robot.state = DirectReTurn;
+						}
 						enteringState = true;
 					}
 				}
@@ -508,7 +547,14 @@ task main()
 					else
 					{
 						setChassisPowers(0, 0);
-						robot.state = DepositingRing;
+						if(!hasTurnedAround)
+						{
+							robot.state = DepositingRing;
+						}
+						else
+						{
+							robot.state = DirectReTurn;
+						}
 						enteringState = true;
 					}
 				}
@@ -521,10 +567,36 @@ task main()
 					else
 					{
 						setChassisPowers(0, 0);
-						robot.state = DepositingRing;
+						if(!hasTurnedAround)
+						{
+							robot.state = DepositingRing;
+						}
+						else
+						{
+							robot.state = DirectReTurn;
+						}
 						enteringState = true;
 					}
 				}
+			}
+			break;
+			//
+			//
+			//
+			//TurningAround
+			//
+			//
+			//
+		case TurningAround:
+			displayTextLine(3, "State: TurningAround");
+			if(enteringState)
+			{
+				tempGyro = gyroValue;
+				enteringState = false;
+			}
+			if(hasTurnedProportionally(180, tempGyro + 180))
+			{
+				robot.state = DirectDrive;
 			}
 			break;
 			//

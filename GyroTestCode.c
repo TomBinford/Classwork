@@ -10,7 +10,7 @@ void gyroCorrect()
 		return;
 	}
 	time1[T1] = 0;
-	float currentRate = getGyroRateFloat(gyro) - driftRate;
+	float currentRate = getGyroRateFloat(port4) - driftRate;
 	gyroValue += currentRate/(1000 / (float)currentTime);
 	if(gyroValue > 360)
 	{
@@ -29,12 +29,12 @@ void gyroCalibration()
 	int count = 0;
 	while(time1[T1] < 5000)
 	{
-		sum += getGyroRateFloat(gyro);
+		sum += getGyroRateFloat(port4);
 		count++;
 		delay(5);
 	}
 	driftRate = sum / count;
-	SensorValue(gyro) = 0;
+	SensorValue(port4) = 0;
 	time1[T1] = 0;
 }
 
