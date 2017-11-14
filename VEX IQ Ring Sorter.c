@@ -89,7 +89,7 @@ void gyroCorrect()
 	time1[T1] = 0;
 	float currentRate = getGyroRateFloat(gyro) - driftRate;
 	gyroValue += currentRate/(1000 / (float)currentTime);
-	if(gyroValue < 0)
+	if(gyroValue < -360)
 	{
 		gyroValue += 360;
 	}
@@ -127,10 +127,10 @@ void gyroCalibration()
 	time1[T1] = 0;
 }
 
-int inchesToDegs(int inches)
+int inchesToDegs(float inches)
 {
 	//2 in ~ 100 degs
-	return inches * 34;
+	return inches * 34.0;
 }
 
 void setChassisPowers(int leftPower, int rightPower)
@@ -165,7 +165,7 @@ bool hasPassedBlackLine()
 	{
 		blackSeen = true;
 	}
-	if((getColorGrayscale(leftGrayscale) > 150 || getColorGrayscale(rightGrayscale) > 150) && blackSeen)
+	if((getColorGrayscale(leftGrayscale) > 150 && getColorGrayscale(rightGrayscale) > 150) && blackSeen)
 	{
 		blackSeen = false;
 		return true;
@@ -175,6 +175,14 @@ bool hasPassedBlackLine()
 
 bool hasTurnedProportionally(float goalDegrees, float changeDegrees, int maxPower = 95, int minPower = 15)
 {
+	if(goalDegrees > 360)
+	{
+		goalDegrees -= 360;
+	}
+	if(goalDegrees < -360)
+	{
+		goalDegrees += 360;
+	}
 	int power = (abs(gyroValue - goalDegrees) - 10) / abs(changeDegrees) * maxPower + minPower;
 	if(goalDegrees - 1 > gyroValue)
 	{
@@ -255,7 +263,7 @@ task main()
 				nMotorEncoder[robot.chassis.leftSide] = 0;
 				nMotorEncoder[robot.chassis.rightSide] = 0;
 			}
-			else if(!hasTurnedProportionally(270, 270, 100) && alignmentStage == 1)
+			else if(!hasTurnedProportionally(-90, -90, 100) && alignmentStage == 1)
 			{
 			}
 			else if(alignmentStage == 1)
@@ -265,7 +273,7 @@ task main()
 				nMotorEncoder[robot.chassis.leftSide] = 0;
 				nMotorEncoder[robot.chassis.rightSide] = 0;
 			}
-			else if(absEncoder(robot.chassis.leftSide) < 160 && absEncoder(robot.chassis.rightSide) < 160 && alignmentStage == 2)
+			else if(absEncoder(robot.chassis.leftSide) < 175 && absEncoder(robot.chassis.rightSide) < 165 && alignmentStage == 2)
 			{
 				setChassisPowers(50, 50);
 			}
@@ -353,7 +361,7 @@ task main()
 			else
 			{
 				motor[intakeMotor] = 0;
-				robot.state = Idle;
+				robot.state = TurningAround;
 			}
 			break;
 			//
@@ -429,12 +437,12 @@ task main()
 				else
 				{
 					directTurnDegrees = 180 - radiansToDegrees(asin(18 / 19.0));
-						if(hasTurnedProportionally(180 - radiansToDegrees(asin(18 / 19.0)), 180 - radiansToDegrees(asin(18 / 19.0))))
-						{
-							robot.state = DirectDrive;
-							setChassisPowers(0, 0);
-							enteringState = true;
-						}
+					if(hasTurnedProportionally(180 - radiansToDegrees(asin(18 / 19.0)), 180 - radiansToDegrees(asin(18 / 19.0))))
+					{
+						robot.state = DirectDrive;
+						setChassisPowers(0, 0);
+						enteringState = true;
+					}
 				}
 			}
 			break;
@@ -457,22 +465,31 @@ task main()
 			{
 				if(currentRingSpot == 1)
 				{
-					if(absEncoder(robot.chassis.leftSide) < inchesToDegs(19) && absEncoder(robot.chassis.rightSide) < inchesToDegs(19))
+					if(hasTurnedAround)
 					{
-						setChassisPowers(50, 50);
-					}
-					else
-					{
-						setChassisPowers(0, 0);
-						if(!hasTurnedAround)
+						if(absEncoder(robot.chassis.leftSide) < inchesToDegs(14) && absEncoder(robot.chassis.rightSide) < inchesToDegs(14))
 						{
-							robot.state = DepositingRing;
+							setChassisPowers(50, 50);
 						}
 						else
 						{
+							setChassisPowers(0, 0);
 							robot.state = DirectReTurn;
+							enteringState = true;
 						}
-						enteringState = true;
+					}
+					else
+					{
+						if(absEncoder(robot.chassis.leftSide) < inchesToDegs(15.5) && absEncoder(robot.chassis.rightSide) < inchesToDegs(15.5))
+						{
+							setChassisPowers(50, 50);
+						}
+						else
+						{
+							setChassisPowers(0, 0);
+							robot.state = DepositingRing;
+							enteringState = true;
+						}
 					}
 				}
 				else if(currentRingSpot == 2)
@@ -594,9 +611,11 @@ task main()
 				tempGyro = gyroValue;
 				enteringState = false;
 			}
-			if(hasTurnedProportionally(180, tempGyro + 180))
+			if(hasTurnedProportionally(tempGyro + 180, tempGyro + 180))
 			{
+				hasTurnedAround = true;
 				robot.state = DirectDrive;
+				enteringState = true;
 			}
 			break;
 			//
@@ -613,10 +632,10 @@ task main()
 				gyroValue = 0;
 				enteringState = false;
 			}
-			if(hasTurnedProportionally(directTurnDegrees + 180, directTurnDegrees + 180))
+			if(hasTurnedProportionally(175 - directTurnDegrees, 175 - directTurnDegrees))
 			{
 				setChassisPowers(0, 0);
-				robot.state = DrivingForward;
+				robot.state = Idle;
 				enteringState = true;
 			}
 			break;
