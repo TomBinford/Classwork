@@ -12,6 +12,8 @@ float driftRate = 0;
 
 float gyroValue = 0;
 
+float tempGyro;
+
 bool blackSeen = false;
 
 enum RingColors
@@ -539,65 +541,95 @@ task main()
 				}
 			}
 			else if(ringColor == Blue)
-			{
+			{//1:25 2:19 3:19
 				if(currentRingSpot == 1)
 				{
-					if(absEncoder(robot.chassis.leftSide) < inchesToDegs(25) && absEncoder(robot.chassis.rightSide) < inchesToDegs(25))
+					if(hasTurnedAround)
 					{
-						setChassisPowers(50, 50);
-					}
-					else
-					{
-						setChassisPowers(0, 0);
-						if(!hasTurnedAround)
+						if(absEncoder(robot.chassis.leftSide) < inchesToDegs(25) && absEncoder(robot.chassis.rightSide) < inchesToDegs(25))
 						{
-							robot.state = DepositingRing;
+							setChassisPowers(-50, -50);
 						}
 						else
 						{
+							setChassisPowers(0, 0);
 							robot.state = DirectReTurn;
+							enteringState = true;
+							hasTurnedAround = false;
 						}
-						enteringState = true;
+					}
+					else
+					{
+						if(absEncoder(robot.chassis.leftSide) < inchesToDegs(19) && absEncoder(robot.chassis.rightSide) < inchesToDegs(19))
+						{
+							setChassisPowers(50, 50);
+						}
+						else
+						{
+							setChassisPowers(0, 0);
+							robot.state = DepositingRing;
+							enteringState = true;
+						}
 					}
 				}
 				else if(currentRingSpot == 2)
 				{
-					if(absEncoder(robot.chassis.leftSide) < inchesToDegs(19) && absEncoder(robot.chassis.rightSide) < inchesToDegs(19))
+					if(hasTurnedAround)
 					{
-						setChassisPowers(50, 50);
-					}
-					else
-					{
-						setChassisPowers(0, 0);
-						if(!hasTurnedAround)
+						if(absEncoder(robot.chassis.leftSide) < inchesToDegs(19) && absEncoder(robot.chassis.rightSide) < inchesToDegs(19))
 						{
-							robot.state = DepositingRing;
+							setChassisPowers(-50, -50);
 						}
 						else
 						{
+							setChassisPowers(0, 0);
 							robot.state = DirectReTurn;
+							enteringState = true;
+							hasTurnedAround = false;
 						}
-						enteringState = true;
+					}
+					else
+					{
+						if(absEncoder(robot.chassis.leftSide) < inchesToDegs(11) && absEncoder(robot.chassis.rightSide) < inchesToDegs(11))
+						{
+							setChassisPowers(50, 50);
+						}
+						else
+						{
+							setChassisPowers(0, 0);
+							robot.state = DepositingRing;
+							enteringState = true;
+						}
 					}
 				}
-				else
+				else if(currentRingSpot == 3)
 				{
-					if(absEncoder(robot.chassis.leftSide) < inchesToDegs(19) && encoder(robot.chassis.rightSide) < inchesToDegs(19))
+					if(hasTurnedAround)
 					{
-						setChassisPowers(50, 50);
-					}
-					else
-					{
-						setChassisPowers(0, 0);
-						if(!hasTurnedAround)
+						if(absEncoder(robot.chassis.leftSide) < inchesToDegs(25) && absEncoder(robot.chassis.rightSide) < inchesToDegs(25))
 						{
-							robot.state = DepositingRing;
+							setChassisPowers(-50, -50);
 						}
 						else
 						{
+							setChassisPowers(0, 0);
 							robot.state = DirectReTurn;
+							enteringState = true;
+							hasTurnedAround = false;
 						}
-						enteringState = true;
+					}
+					else
+					{
+						if(absEncoder(robot.chassis.leftSide) < inchesToDegs(24) && absEncoder(robot.chassis.rightSide) < inchesToDegs(24))
+						{
+							setChassisPowers(50, 50);
+						}
+						else
+						{
+							setChassisPowers(0, 0);
+							robot.state = DepositingRing;
+							enteringState = true;
+						}
 					}
 				}
 			}
@@ -613,12 +645,11 @@ task main()
 			displayTextLine(3, "State: DirectReTurn");
 			if(enteringState)
 			{
-				gyroValue = 0;
+				tempGyro = gyroValue;
 				enteringState = false;
 			}
-			if(hasTurnedProportionally(-directTurnDegrees, -directTurnDegrees))
+			if(hasTurnedProportionally(-tempGyro - directTurnDegrees, -tempGyro - directTurnDegrees))
 			{
-				gyroValue = 0;
 				setChassisPowers(0, 0);
 				robot.state = DrivingForward;
 				enteringState = true;
