@@ -61,7 +61,7 @@ void init()
 	robot.chassis.rightSide = rightMotor;
 	robot.state = AlignmentState;
 	time1[T1] = 0;
-	setColorMode(color, colorTypeRGB_Hue_Reflected);
+	setColorMode(color, colorTypeRGB_Raw_Reflected);
 	setColorMode(leftGrayscale, colorTypeGrayscale_Reflected);
 	setColorMode(rightGrayscale, colorTypeGrayscale_Reflected);
 }
@@ -128,22 +128,23 @@ void setChassisPowers(int leftPower, int rightPower)
 
 int getRingColor()
 {
-	if(getColorHue(color) < 8)
+	int red = getColorRedChannel(color);
+	int green = getColorGreenChannel(color);
+	int blue = getColorBlueChannel(color);
+
+	if(red > green && red > blue)
+	{
+		return 0;
+	}
+	if(green > red && green > blue)
+	{
+		return 0;
+	}
+	if(blue > red && blue > green)
 	{
 		return 1;
 	}
-	else if(getColorHue(color) < 110 && getColorHue(color) > 100)
-	{
-		return 1;
-	}
-	else if(getColorHue(color) < 168 && getColorHue(color) > 160)
-	{
-		return 2;
-	}
-	else
-	{
-		return 3;
-	}
+	return 0;
 }
 
 bool hasPassedBlackLine()
@@ -152,7 +153,7 @@ bool hasPassedBlackLine()
 	{
 		blackSeen = true;
 	}
-	if((getColorGrayscale(leftGrayscale) > 150 && getColorGrayscale(rightGrayscale) > 150) && blackSeen)
+	if((getColorGrayscale(leftGrayscale) > 150 || getColorGrayscale(rightGrayscale) > 150) && blackSeen)
 	{
 		blackSeen = false;
 		return true;
@@ -160,7 +161,7 @@ bool hasPassedBlackLine()
 	return false;
 }
 
-bool hasTurnedProportionally(float goalDegrees, float changeDegrees, int maxPower = 60, int minPower = 15)
+bool hasTurnedProportionally(float goalDegrees, float changeDegrees, int maxPower = 60, int minPower = 13)
 {
 	if(goalDegrees > 360)
 	{
@@ -222,6 +223,18 @@ task main()
 	gyroCalibration();
 	while(true)
 	{
+		if(ringColor == RedOrGreen)
+		{
+			displayTextLine(3, "Red/Green");
+		}
+		if(ringColor == Blue)
+		{
+			displayTextLine(3, "Blue");
+		}
+		if(ringColor == None)
+		{
+			displayTextLine(3, "None");
+		}
 		displayTextLine(2, "Gyro: %f", gyroValue);
 		gyroCorrect();
 		switch(robot.state)
@@ -285,11 +298,11 @@ task main()
 			{
 				if(gyroValue > 0.5)
 				{
-					setChassisPowers(53, 50);
+					setChassisPowers(55, 50);
 				}
 				else if(gyroValue < -0.5)
 				{
-					setChassisPowers(50, 53);
+					setChassisPowers(50, 55);
 				}
 				else
 				{
@@ -326,16 +339,17 @@ task main()
 			}
 			break;
 		case ScanningRing:
-			if(getRingColor() == 1 || getRingColor() == 2)
+			int temp = getRingColor();
+			if(temp == 0)
 			{
 				ringColor = RedOrGreen;
 			}
-			else if(getRingColor() == 3)
+			else
 			{
 				ringColor = Blue;
 			}
-			robot.state = DirectTurn;
 			enteringState = true;
+			robot.state = DirectTurn;
 			break;
 		case DepositingRing:
 			displayTextLine(3, "State: DepositingRing");
@@ -541,12 +555,12 @@ task main()
 				}
 			}
 			else if(ringColor == Blue)
-			{//1:25 2:19 3:19
+			{
 				if(currentRingSpot == 1)
 				{
 					if(hasTurnedAround)
 					{
-						if(absEncoder(robot.chassis.leftSide) < inchesToDegs(25) && absEncoder(robot.chassis.rightSide) < inchesToDegs(25))
+						if(absEncoder(robot.chassis.leftSide) < inchesToDegs(24) && absEncoder(robot.chassis.rightSide) < inchesToDegs(24))
 						{
 							setChassisPowers(-50, -50);
 						}
@@ -560,7 +574,7 @@ task main()
 					}
 					else
 					{
-						if(absEncoder(robot.chassis.leftSide) < inchesToDegs(19) && absEncoder(robot.chassis.rightSide) < inchesToDegs(19))
+						if(absEncoder(robot.chassis.leftSide) < inchesToDegs(21) && absEncoder(robot.chassis.rightSide) < inchesToDegs(21))
 						{
 							setChassisPowers(50, 50);
 						}
@@ -648,7 +662,7 @@ task main()
 				tempGyro = gyroValue;
 				enteringState = false;
 			}
-			if(hasTurnedProportionally(-tempGyro - directTurnDegrees, -tempGyro - directTurnDegrees))
+			if(hasTurnedProportionally(0, -tempGyro - directTurnDegrees))
 			{
 				setChassisPowers(0, 0);
 				robot.state = DrivingForward;

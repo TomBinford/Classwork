@@ -17,23 +17,30 @@ void updateGrayscales()
 	}
 	time1[T2] = 0;
 	int tempLeft[10];
-	int tempRight[10];
-	for(int i = 0; i < 8; i++)
+	int tempright[10];
+	for(int i = 1; i <= 9; i++)
 	{
-		tempLeft[i] = leftGrays[i + 1];
-		tempRight[i] = rightGrays[i + 1];
+		tempLeft[i] = leftGrays[i - 1];
+		tempright[i] = rightGrays[i - 1];
 	}
 	tempLeft[0] = getColorGrayscale(leftGrayscale);
-	tempRight[0] = getColorGrayscale(leftGrayscale);
-	leftGrays = tempLeft;
-	rightGrays = tempRight;
+	tempright[0] = getColorGrayscale(rightGrayscale);
+
+	for(int i = 0; i <= 9; i++)
+	{
+		leftGrays[i] = tempLeft[i];
+		rightGrays[i] = tempright[i];
+	}
+
 	leftGrayscaleValue = 0;
 	rightGrayscaleValue = 0;
+
 	for(int i = 0; i < 9; i++)
 	{
 		leftGrayscaleValue += leftGrays[i];
 		rightGrayscaleValue += rightGrays[i];
 	}
+
 	leftGrayscaleValue = leftGrayscaleValue / 10;
 	rightGrayscaleValue = rightGrayscaleValue / 10;
 }
@@ -48,64 +55,68 @@ task main()
 	while(true)
 	{
 		updateGrayscales();
-		int red = getColorRedChannel(colorSensor);
-		int green = getColorGreenChannel(colorSensor);
-		int blue = getColorBlueChannel(colorSensor);
-		if(red > blue && red > green)
-		{
-			displayTextLine(4, "IndividualR");
-		}
-		else if(blue > red && blue > green)
-		{
-			displayTextLine(4, "IndividualB");
-		}
-		else if(green > blue && green > red)
-		{
-			displayTextLine(4, "IndividualG");
-		}
-		else
-		{
-			displayTextLine(4, "Individual?");
-		}
-		if(getColorHue(colorSensor) > 0 && getColorHue(colorSensor) < 10)
-		{
-			displayTextLine(3, "HueR");
-		}
-		else if(getColorHue(colorSensor) > 160 && getColorHue(colorSensor) < 170)
-		{
-			displayTextLine(3, "HueB");
-		}
-		else if(getColorHue(colorSensor) > 100 && getColorHue(colorSensor) < 110)
-		{
-			displayTextLine(3, "HueG");
-		}
-		else
-		{
-			displayTextLine(3, "Hue?");
-		}
-		if(leftGrayscaleValue > 125)
-		{
-			displayTextLine(2, "LeftWhite");
-		}
-		else if(leftGrayscaleValue < 75)
-		{
-			displayTextLine(2, "LeftBlack");
-		}
-		else
-		{
-			displayTextLine(2, "Left?");
-		}
-		if(rightGrayscaleValue > 125)
-		{
-			displayTextLine(1, "RightWhite");
-		}
-		else if(rightGrayscaleValue < 75)
-		{
-			displayTextLine(1, "RightBlack");
-		}
-		else
-		{
-			displayTextLine(1, "Right?");
-		}
+		//int red = getColorRedChannel(colorSensor);
+		//int green = getColorGreenChannel(colorSensor);
+		//int blue = getColorBlueChannel(colorSensor);
+		//if(red > blue && red > green)
+		//{
+		//	displayTextLine(4, "IndividualR");
+		//}
+		//else if(blue > red && blue > green)
+		//{
+		//	displayTextLine(4, "IndividualB");
+		//}
+		//else if(green > blue && green > red)
+		//{
+		//	displayTextLine(4, "IndividualG");
+		//}
+		//else
+		//{
+		//	displayTextLine(4, "Individual?");
+		//}
+		//if(getColorHue(colorSensor) > 0 && getColorHue(colorSensor) < 10)
+		//{
+		//	displayTextLine(3, "HueR");
+		//}
+		//else if(getColorHue(colorSensor) > 160 && getColorHue(colorSensor) < 170)
+		//{
+		//	displayTextLine(3, "HueB");
+		//}
+		//else if(getColorHue(colorSensor) > 100 && getColorHue(colorSensor) < 110)
+		//{
+		//	displayTextLine(3, "HueG");
+		//}
+		//else
+		//{
+		//	displayTextLine(3, "Hue?");
+		//}
+		//if(leftGrayscaleValue > 125)
+		//{
+		//	displayTextLine(2, "LeftWhite");
+		//}
+		//else if(leftGrayscaleValue < 75)
+		//{
+		//	displayTextLine(2, "LeftBlack");
+		//}
+		//else
+		//{
+		//	displayTextLine(2, "Left?");
+		//}
+		//if(rightGrayscaleValue > 125)
+		//{
+		//	displayTextLine(1, "RightWhite");
+		//}
+		//else if(rightGrayscaleValue < 75)
+		//{
+		//	displayTextLine(1, "RightBlack");
+		//}
+		//else
+		//{
+		//	displayTextLine(1, "Right?");
+		//}
+		displayTextLine(1, "LeftGray: %d", getColorGrayscale(leftGrayscale));
+		displayTextLine(3, "RightGray: %d", getColorGrayscale(rightGrayscale));
+		displayTextLine(2, "Left: %d", leftGrayscaleValue);
+		displayTextLine(4, "Right: %d", rightGrayscaleValue);
 	}
 }
