@@ -189,10 +189,6 @@ int absEncoder(Side m)
 {
 	return abs(nMotorEncoder[m]);
 }
-int encoder(Side m)
-{
-	return nMotorEncoder[m];
-}
 //
 //
 //
